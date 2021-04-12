@@ -435,6 +435,8 @@ function keyPressed() {
 
     if (keyCode == 27) {
         document.exitFullscreen();
+        createCanvas(window.innerWidth,window.innerHeight);
+        
     }
 
 }
