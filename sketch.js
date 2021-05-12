@@ -211,6 +211,8 @@ function mouseClicked() {
 
         if (mouseX > 10 && mouseX < 60) {
             if (mouseY > height - 60 && mouseY < height - 10) {
+                alert("Debugging is needed for this feature please try again later");
+                return;
                 document.getElementById("defaultCanvas0").requestFullscreen();
                 createCanvas(window.outerWidth, window.outerHeight);
             }
