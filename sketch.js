@@ -1,6 +1,6 @@
 // JavaScript source code
 let settingsImg, spaceshipMenuImg, sheildBackImg, saveImg, sheildImg, fullscreenImg, ship2Img,
-    shopImg, graphImg, shareImg, starsImg, shipImg, upArrowImg, circleImg, mouseImg, loginImg;
+    shopImg, graphImg, shareImg, starsImg, shipImg, upArrowImg, mouseImg, loginImg;
 let game, state = "main";
 let isMousePressed = false, startMouseDragged = false;
 let settings = { msic: true, snd: true, inv: false, sens: 100 };
@@ -174,7 +174,6 @@ function loadImages() {
     starsImg = loadImage("stars.png");
     shipImg = loadImage("Spaceship.png");
     upArrowImg = loadImage("Up Arrow.png");
-    circleImg = loadImage("Circle.png");
     mouseImg = loadImage("mouse.png");
     sheildImg = loadImage("sheild.png");
     sheildBackImg = loadImage("sheildback.png");
