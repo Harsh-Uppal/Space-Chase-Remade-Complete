@@ -88,7 +88,6 @@ class ButtonFunctions {
 
         if (ind[0]) {
             if (textBoxes[1].t == ind[3]) {
-                console.log('logg')
                 playerHighscore = ind[1];
                 orbs = ind[2];
                 loginID = allPlayers.findIndex(val => val == ind);
