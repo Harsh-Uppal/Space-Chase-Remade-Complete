@@ -5,13 +5,14 @@ class Background {
         this.pixelsSetX = [];
         this.pixelsSet = [];
         this.Verts = [];
+        this.offset = 0;
 
         this.runFromStart = true;
         this.resolution = res;
 
-        this.createPerlinLayer(40, 1000000, 60, 0.001, 100, 20, 300);
-        this.createPerlinLayer(40, 1000000, 90, 0.001, 100, 20, 400);
-        this.createPerlinLayer(200, 1000000, 30, 0.001, 100, 20, 0);
+        this.createPerlinLayer(40, round(random(0, 1000000000)), 60, 0.009, 100, 10, 300);
+        this.createPerlinLayer(40, round(random(0, 1000000000)), 90, 0.005, 100, 20, 400);
+        this.createPerlinLayer(200, round(random(0, 1000000000)), 30, 0.001, 100, 20, 0);
 
 
         this.setStars();
@@ -22,8 +23,10 @@ class Background {
 
     }
 
-    static update() {
+    static update(inc) {
         this.updateStars();
+
+        this.offset += inc;
 
         this.createPerlinLayer(null, null, 30);
         this.createPerlinLayer(null, null, 60);

@@ -6,7 +6,7 @@ let isMousePressed = false, startMouseDragged = false;
 let settings = { msic: true, snd: true, inv: false, sens: 100 };
 let database, textBoxes = [], buttons = [];
 let playerHighscore = 0, allPlayers, orbs = 0, loginID = -1, playername = '';
-let selectedBox = null;
+let selectedBox = null, progressSaved = false;
 let sensLHel = false;
 let lastShownMousePos = window.innerHeight / 2, goingTowardsUp = true;
 
@@ -32,10 +32,12 @@ function setNewButtons(stateChangeTo) {
     switch (stateChangeTo) {
         case 'main':
             buttons.push(new Button(width / 6, height / 8, width / 8 * 5, height / 8 * 5, '', false, false, {}, ButtonFunctions.startGame));
-            buttons.push(new Button(width / 3, height * 3 / 4, 50, 50, '', false, false, {}, ButtonFunctions.openSettings));
-            buttons.push(new Button(5 * width / 12, height * 3 / 4, 50, 50, '', false, false, {}, ButtonFunctions.openLoginPage));
-            buttons.push(new Button(width / 2, height * 3 / 4, 50, 50, '', false, false, {}, ButtonFunctions.saveGame));
-            buttons.push(new Button(10, height - 60, 50, 50, '', false, false, {}, ButtonFunctions.fullscreen));
+            buttons.push(new Button(width / 3, height * 3 / 4, 50, 50, '', false, true, Button.createStForOnlyImg('settings.png'), ButtonFunctions.openSettings));
+            buttons.push(new Button(5 * width / 12, height * 3 / 4, 50, 50, '', false, true, Button.createStForOnlyImg('login.png'), ButtonFunctions.openLoginPage));
+            buttons.push(new Button(width / 2, height * 3 / 4, 50, 50, '', false, true, Button.createStForOnlyImg('saveIcon.png'), ButtonFunctions.saveGame));
+            buttons.push(new Button(10, height - 60, 50, 50, '', false, true, Button.createStForOnlyImg('fullscreen.png'), ButtonFunctions.fullscreen));
+            buttons.push(new Button(width * 3 / 5, height * 3 / 4, 50, 50, '', false, true,
+                Button.createStForOnlyImg('Exit.png'), ButtonFunctions.exit))
             break;
         case 'gameplay':
             buttons.push(new Button(0, 0, width, height, '', false, false, {}, ButtonFunctions.gameplayStart));
@@ -62,10 +64,6 @@ function draw() {
 
     if (state == "main") {
         Background.update();
-        image(settingsImg, width / 3, height * (3 / 4), 50, 50);
-        image(loginImg, width / 3 + width / 12, height * (3 / 4), 50, 50);
-        image(saveImg, width / 3 + width / 6, height * (3 / 4), 50, 50);
-
         fill("white")
 
         noStroke();
@@ -85,8 +83,6 @@ function draw() {
         textStyle(BOLD);
         text('Auras : ' + orbs, width - 250, 60);
         text("Highscore : " + playerHighscore, width - 250, 90);
-
-        image(fullscreenImg, 10, height - 60, 50, 50);
     }
     else if (state == "settings") {
         Background.update();
@@ -169,21 +165,19 @@ function draw() {
         }
     }
 
+    buttons.forEach(function (val) { val.display(); });
+
     drawSprites();
 }
 
 function loadImages() {
-    settingsImg = loadImage("settings.png");
     starsImg = loadImage("stars.png");
     shipImg = loadImage("Spaceship.png");
     upArrowImg = loadImage("Up Arrow.png");
     circleImg = loadImage("Circle.png");
     mouseImg = loadImage("mouse.png");
-    loginImg = loadImage("login.png");
     sheildImg = loadImage("sheild.png");
     sheildBackImg = loadImage("sheildback.png");
-    saveImg = loadImage("saveIcon.png");
-    fullscreenImg = loadImage("fullscreen.png");
     ship2Img = loadImage("ship2.png");
 }
 
@@ -241,6 +235,7 @@ function displayTextBoxes() {
 function gameEnded() {
     game = new Game();
     setNewButtons('main');
+    progressSaved = false;
 }
 
 function mouseDragged() {

@@ -9,16 +9,19 @@ class Button {
     }
 
     display() {
-        stroke(this.style.stroke);
-        fill(this.style.fill);
-        strokeWeight(this.style.textWidth);
-        fontSize(this.style.textSize);
+        if (this.settings.t != '' || this.settings.dR) {
+            stroke(this.style.stroke);
+            fill(this.style.fill);
+            strokeWeight(this.style.textWidth);
+            fontSize(this.style.textSize);
+        }
         text(this.settings.t, this.settings.x + this.settings.w / 2, this.settings.y);
-        strokeWeight(this.style.strW);
-        if (this.settings.dR)
+        if (this.settings.dR) {
+            strokeWeight(this.style.strW);
             rect(this.settings.x, this.settings.y, this.settings.w, this.settings.h, this.settings.r);
+        }
         if (this.settings.dI)
-            image(this.settings.img, this.settings.x, this.setting.y, this.settings.w, this.settings.h);
+            image(this.settings.img, this.settings.x, this.settings.y, this.settings.w, this.settings.h);
     }
 
     update(mousePos) {
@@ -29,8 +32,12 @@ class Button {
         }
     }
 
-    static createStyle(strok, fil, txtWdth, txtSize, strWeght) {
-        return { stroke: strok, fill: fil, textWidth: txtWdth, textSize: txtSize, strW: strWeght };
+    static createStyle(img, strok, fil, txtWdth, txtSize, strWeght) {
+        return { img: img, stroke: strok, fill: fil, textWidth: txtWdth, textSize: txtSize, strW: strWeght };
+    }
+
+    static createStForOnlyImg(img) {
+        return { img: img, stroke: 0, fill: '', textWidth: 0, textSize: 0, strW: 0 };
     }
 }
 
@@ -61,6 +68,7 @@ class ButtonFunctions {
             database.ref('Players').on('value', (val) => { allPlayers = val.val() })
             allPlayers[loginID] = [playerName, playerHighscore, orbs, allPlayers[loginID][3], settingsToString()];
             database.ref('Players').update(allPlayers);
+            progressSaved = true;
         }
         else {
             alert("Login Please");
@@ -115,7 +123,7 @@ class ButtonFunctions {
         else
             alert('Wrong password or username');
     }
-    static signUp(){
+    static signUp() {
         if (allPlayers.find(val => val[0] == textBoxes[0].t)) {
             alert("Player name already used");
         }
@@ -123,12 +131,17 @@ class ButtonFunctions {
             database.ref('Players').on('value', (val) => { allPlayers = val.val() })
             this.resetSettings();
             orbs = 0;
-            playerHighscore = 0; 
+            playerHighscore = 0;
             allPlayers.push([textBoxes[0].t, playerHighscore, orbs, textBoxes[1].t, settingsToString()]);
             database.ref('Players').update(allPlayers);
             loginID = allPlayers.length - 1;
             alert("Signed Up");
             state = "main";
         }
+    }
+    static exit() {
+        if (playername != '')
+            this.saveGame();
+        window.location = 'https://github.com/Harsh-Uppal/Project-C48';
     }
 }
