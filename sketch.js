@@ -1,10 +1,14 @@
 // JavaScript source code
-let settingsImg, spaceshipMenuImg, sheildBackImg, saveImg, sheildImg, fullscreenImg, shopImg, graphImg, shareImg, starsImg, shipImg, upArrowImg, circleImg, mouseImg, loginImg;
+let settingsImg, spaceshipMenuImg, sheildBackImg, saveImg, sheildImg, fullscreenImg, ship2Img,
+    shopImg, graphImg, shareImg, starsImg, shipImg, upArrowImg, circleImg, mouseImg, loginImg;
 let game, state = "main";
 let isMousePressed = false, startMouseDragged = false;
 let settings = { msic: true, snd: true, inv: false, sens: 100 };
-let database, textBoxes = [];
+let database, textBoxes = [], buttons = [];
 let playerHighscore = 0, allPlayers, orbs = 0, loginID = -1, playername = '';
+let selectedBox = null;
+let sensLHel = false;
+let lastShownMousePos = window.innerHeight / 2, goingTowardsUp = true;
 
 function preload() { loadImages(); }
 
@@ -19,6 +23,38 @@ function setup() {
     database.ref("Players").on("value", function (data) {
         allPlayers = data.val();
     });
+    setNewButtons('main');
+}
+
+function setNewButtons(stateChangeTo) {
+    buttons = [];
+
+    switch (stateChangeTo) {
+        case 'main':
+            buttons.push(new Button(width / 6, height / 8, width / 8 * 5, height / 8 * 5, '', false, false, {}, ButtonFunctions.startGame));
+            buttons.push(new Button(width / 3, height * 3 / 4, 50, 50, '', false, false, {}, ButtonFunctions.openSettings));
+            buttons.push(new Button(5 * width / 12, height * 3 / 4, 50, 50, '', false, false, {}, ButtonFunctions.openLoginPage));
+            buttons.push(new Button(width / 2, height * 3 / 4, 50, 50, '', false, false, {}, ButtonFunctions.saveGame));
+            buttons.push(new Button(10, height - 60, 50, 50, '', false, false, {}, ButtonFunctions.fullscreen));
+            break;
+        case 'gameplay':
+            buttons.push(new Button(0, 0, width, height, '', false, false, {}, ButtonFunctions.gameplayStart));
+            buttons.push(new Button(width / 2 - 150, height * (3 / 4), 100, 50, '', false, false, {}, () => { game.buttonPressed(); }));
+            break;
+        case 'settings':
+            buttons.push(new Button(width / 2 + 87.5, height / (20 / 7) - 12.5, 25, 25, '', false, false, {}, () => { settings.msic = !settings.msic; }));
+            buttons.push(new Button(width / 2 + 87.5, height / (20 / 9) - 12.5, 25, 25, '', false, false, {}, () => { settings.snd = !settings.snd; }));
+            buttons.push(new Button(width / 2 + 87.5, round(height / 1.81) - 12.5, 25, 25, '', false, false, {}, () => { settings.inv = !settings.inv }));
+            buttons.push(new Button(width / 15 - 40, height * 5 / 6 - 20, 120, 40, '', false, false, {}, ButtonFunctions.backButton));
+            buttons.push(new Button(width / 2 - 30, height * 4 / 5 - 15, 60, 15, '', false, false, {}, ButtonFunctions.resetSettings));
+            break;
+        case 'login':
+            buttons.push(new Button(width / 7 - 40, height * 5.1 / 6 - 40, 40 + width / 14, height / 10, '', false, false, {}, ButtonFunctions.backButton));
+            buttons.push(new Button(width / 2 - 150, height * 4 / 5 - 40, 100, 40, '', false, false, {}, ButtonFunctions.loggedIn));
+            buttons.push(new Button(width / 2 + 150, height * 4 / 5 - 40, 100, 40, '', false, false, {}, ButtonFunctions.signUp));
+            break;
+
+    }
 }
 
 function draw() {
@@ -44,9 +80,11 @@ function draw() {
         noStroke();
         text("Click To Start", width / 2, height / 2);
         image(starsImg, width - 70, 30, 40, 40);
+        textSize(25);
         fill('red');
-        text(orbs, width - 200, 60);
-        text("Highscore : " + playerHighscore, width - 250, 120);
+        textStyle(BOLD);
+        text('Auras : ' + orbs, width - 250, 60);
+        text("Highscore : " + playerHighscore, width - 250, 90);
 
         image(fullscreenImg, 10, height - 60, 50, 50);
     }
@@ -146,6 +184,7 @@ function loadImages() {
     sheildBackImg = loadImage("sheildback.png");
     saveImg = loadImage("saveIcon.png");
     fullscreenImg = loadImage("fullscreen.png");
+    ship2Img = loadImage("ship2.png");
 }
 
 function createTextBox(x, y, w, h, t) {
@@ -153,108 +192,25 @@ function createTextBox(x, y, w, h, t) {
 }
 
 function settingsToString() {
+    let a = (b) => {
+        if (b)
+            return '1';
+        else
+            return '0';
+    };
     let ret = "";
-    if (settings.msic)
-        ret += '1';
-    else
-        ret += '0';
-    if (settings.snd)
-        ret += '1';
-    else
-        ret += '0';
-    if (settings.inv)
-        ret += '1';
-    else
-        ret += '0';
+
+    ret += a(settings.msic);
+    ret += a(settings.snd);
+    ret += a(settings.inv);
     ret += settings.sens;
     return ret;
 }
 
 function mouseClicked() {
-    if (state == "main") {
+    buttons.forEach(function (val) { val.update({ x: mouseX, y: mouseY }) });
 
-        if (mouseX > width / 3 && mouseX < width / 3 + 50) {
-            if (mouseY > height * (3 / 4) && mouseY < height * (3 / 4) + 50) {
-                state = "settings";
-                return;
-            }
-        }
-
-        if (mouseX > width / 3 + width / 12 && mouseX < width / 3 + width / 12 + 50) {
-            if (mouseY > height * (3 / 4) && mouseY < height * (3 / 4) + 50) {
-                state = "login";
-                createTextBox(width / 2, height / 3, width / 10, height / 14, "");
-                createTextBox(width / 2, height / 2, width / 10, height / 14, "");
-                return;
-            }
-        }
-
-        if (mouseX > width / 3 + width / 6 && mouseX < width / 3 + width / 6 + 50) {
-            if (mouseY > height * (3 / 4) && mouseY < height * (3 / 4) + 50) {
-                if (loginID > -1) {
-                    alert("Progress Saved");
-                    database.ref('Players').on('value', (val) => { allPlayers = val.val() })
-                    allPlayers[loginID] = [playerName, playerHighscore, orbs, allPlayers[loginID][3],settingsToString()];
-                    database.ref('Players').update(allPlayers);
-                }
-                else {
-                    alert("Login Please");
-                }
-            }
-        }
-
-        if (mouseX > width / 6 && mouseX < width / 6 + width / 8 * 5) {
-            if (mouseY > height / 8 && mouseY < height / 8 * 6) {
-                state = "gameplay";
-            }
-        }
-
-        if (mouseX > 10 && mouseX < 60) {
-            if (mouseY > height - 60 && mouseY < height - 10) {
-                alert("Debugging is needed for this feature please try again later");
-                return;
-                document.getElementById("defaultCanvas0").requestFullscreen();
-                createCanvas(window.outerWidth, window.outerHeight);
-            }
-        }
-
-    }
-    else if (state == "settings") {
-        if (mouseX > width / 2 + 87.5 && mouseX < width / 2 + 112.5) {
-            if (mouseY > height / 4 + height / 10 - 12.5 && mouseY < height / 4 + height / 10 + 12.5) {
-                if (settings.msic)
-                    settings.msic = false;
-                else
-                    settings.msic = true;
-            }
-            else if (mouseY > height / 4 + height / 5 - 12.5 && mouseY < height / 4 + height / 5 + 12.5) {
-                if (settings.snd)
-                    settings.snd = false;
-                else
-                    settings.snd = true;
-            }
-            else if (mouseY > height / 4 + height / 5 + height / 10 - 12.5 && mouseY < height / 4 + + height / 10 + height / 5 + 12.5) {
-                if (settings.inv)
-                    settings.inv = false;
-                else
-                    settings.inv = true;
-            }
-        }
-        else if (mouseX > width / 15 - 40 && mouseX < width / 15 + 80) {
-            if (mouseY > height * 25 / 30 - 20 && mouseY < height * 25 / 30 + 20) {
-                state = "main";
-            }
-        }
-        else if (mouseX > width / 2 - 30 && mouseX < width / 2 + 30) {
-            if (mouseY > height * 4 / 5 - 14.5 && mouseY < height * 4 / 5) {
-                settings.msic = true;
-                settings.snd = true;
-                settings.inv = false;
-                settings.sens = 100;
-            }
-        }
-    }
-    else if (state == "login") {
+    if (state == "login") {
 
         stroke("grey");
 
@@ -267,70 +223,8 @@ function mouseClicked() {
                 }
             }
         }
-
-        if (mouseX > width / 7 - 40 && mouseX < width / 7 * 1.5) {
-            if (mouseY > height * 25.5 / 30 - 40 && mouseY < height * 25.5 / 30 - 40 + height / 10) {
-                state = "main";
-                textBoxes = [];
-            }
-        }
-
-        if (mouseX > width / 2 - 150 && mouseX < width / 2 - 50) {
-            if (mouseY > height - height / 5 - 40 && mouseY < height - height / 5) {
-
-                let ind = allPlayers.find((val) => val[0] == (textBoxes[0].t));
-
-                if (ind[0]) {
-                    if (textBoxes[1].t == ind[3]) {
-                        playerHighscore = ind[1];
-                        orbs = ind[2];
-                        loginID = allPlayers.findIndex(val => val == ind);
-                        playerName = ind[0];
-                        if(ind[4][0] == '1')
-                            settings.msic = true;
-                        else
-                            settings.msic = false;
-                        if(ind[4][1] == '1')
-                            settings.snd = true;
-                        else
-                            settings.snd = false;                        settings.inv = ind[4][0];
-                        if(ind[4][2] == '1')
-                            settings.inv = true;
-                        else
-                            settings.inv = false;
-                        settings.sens = parseInt(ind[4].slice(3));
-                        state = 'main'
-                    }
-                }
-            }
-        }
-        else if (mouseX > width / 2 + 150 && mouseX < width / 2 + 250) {
-            if (mouseY > height - height / 5 - 40 && mouseY < height - height / 5) {
-                if (allPlayers.find(val => val[0] == textBoxes[0].t)) {
-                    alert("Player name already used");
-                }
-                else {
-                    database.ref('Players').on('value', (val) => { allPlayers = val.val() })
-                    allPlayers.push([textBoxes[0].t, playerHighscore, orbs, textBoxes[1].t,settingsToString()]);
-                    database.ref('Players').update(allPlayers);
-                    loginID = allPlayers.length - 1;
-                    alert("Signed Up");
-                    state = "main";
-                }
-            }
-        }
     }
-    else if (state == "gameplay" && !startMouseDragged) {
-        game.start();
-        startMouseDragged = true;
-    }
-    else if (state == "gameplay") {
-        if (mouseX > width / 2 - 150 && mouseX < width / 2 - 50) {
-            if (mouseY > height * (3 / 4) && mouseY < height * (3 / 4) + 50) {
-                game.buttonPressed();
-            }
-        }
-    }
+
 }
 
 function displayTextBoxes() {
@@ -346,9 +240,9 @@ function displayTextBoxes() {
 
 function gameEnded() {
     game = new Game();
+    setNewButtons('main');
 }
 
-let sensLHel = false;
 function mouseDragged() {
 
     isMousePressed = true;
@@ -386,41 +280,36 @@ function mouseReleased() {
         game.onMouseReleased();
 }
 
-let lastShownMousePos = window.innerHeight / 2;
-let goingTowards = "up";
-
 function showNotPressingImages() {
 
     angleMode(DEGREES);
-
     image(upArrowImg, window.innerWidth / 9 - 20, window.innerHeight / 2 - 100, 40, 40);
-
     push();
     translate(window.innerWidth / 9 + 20, window.innerHeight / 2 + 100);
     rotate(180);
     image(upArrowImg, 0, 0, 40, 40);
     pop();
 
-    if (goingTowards == "up") {
+    if (goingTowardsUp) {
         if (lastShownMousePos < window.innerHeight / 2 - 20 - window.innerHeight / 20) {
-            goingTowards = "down";
+            goingTowardsUp = false;
         }
-
-        image(mouseImg, window.innerWidth / 10, lastShownMousePos - 2, 25, 40);
         lastShownMousePos -= 2;
     }
-    else if (goingTowards == "down") {
+    else {
         if (lastShownMousePos > window.innerHeight / 2 - 20 + window.innerHeight / 20) {
-            goingTowards = "up";
+            goingTowardsUp = true;
         }
-
-        image(mouseImg, window.innerWidth / 10, lastShownMousePos + 2, 25, 40);
         lastShownMousePos += 2;
     }
 
+    image(mouseImg, width / 10, lastShownMousePos, 25, 40);
+    push();
+    translate(width / 4, lastShownMousePos);
+    rotate(90);
+    image(ship2Img, 0, 0, 40, 80);
+    pop();
 }
-
-let selectedBox = null;
 
 function keyPressed() {
 
@@ -437,8 +326,5 @@ function keyPressed() {
 
     if (keyCode == 27) {
         document.exitFullscreen();
-        createCanvas(window.innerWidth,window.innerHeight);
-        
     }
-
 }

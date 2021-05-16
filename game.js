@@ -252,6 +252,7 @@ class Game {
     buttonPressed(){
         if(this.gameEnded){
             state = 'main';
+            setNewButtons('main');
             gameEnded();
             startMouseDragged = false;
         }
